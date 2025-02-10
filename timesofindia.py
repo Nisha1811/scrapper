@@ -2,37 +2,52 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
-url="https://timesofindia.indiatimes.com/india/maharashtra"
+URL = "https://timesofindia.indiatimes.com/"
 
-response= requests.get(url)
+#fetch the webpage link and save the data to json file
+def scrape_times_of_india():
 
-response.status_code == 200 
+    response = requests.get(URL)
 
+    if response.status_code != 200:
+        print(f"Failed to retrieve the page. Status code: {response.status_code}")
+        return
 
-soup = BeautifulSoup(response.text, 'html.parser')
+    soup = BeautifulSoup(response.text, "html.parser")
 
-articles = [] 
-for article in soup.select("div.content a"):
+    # page title to check if the request is successful
+    print("Page Title:", soup.title.text)
+
+#empty list (headlines and links)
+    news_data = []
     
+    # Find all headlines with links
+    articles = soup.find_all("h2")
 
-    #strip=remove space
-    title = article.text.strip()
-    link = "https://timesofindia.indiatimes.com" + article["href"]
+    for article in articles:
+        title = article.text.strip()   #strip= remove space
 
+        # Find the <a> tag inside the <h2> 
+        link_tag = article.find("a")
+        link = link_tag["href"] if link_tag else None
 
-    #add  data 
-    articles.append({"title": title, "link": link})
+        # Convert relative URLs to full URLs
+        if link and not link.startswith("http"):
+            link = f"https://timesofindia.indiatimes.com{link}"
 
-#save data into JSON file form   
-#with= automatically close the file
-#w = write format
-#indent 4= space
-with open("maharashtra_news.json", "w", encoding="utf-8") as file:
-        json.dump(articles, file, indent=4, ensure_ascii=False)
+        if title and link:  # Ensure both title and link exist
+            news_data.append({
+                "title": title,
+                "link": link
+            })
 
+    # Print scraped data before saving
+    print("Scraped Data:", json.dumps(news_data, indent=4, ensure_ascii=False))
 
+    with open("times_of_india_news.json", "w", encoding="utf-8") as file:
+        json.dump(news_data, file, ensure_ascii=False, indent=4)
 
-if response.status_code == 200:
-    print(" Scraping successful! Data saved in 'maharashtra_news.json'.")
-else:
-     print(" Failed to retrieve the webpage. Status code:", response.status_code)
+    print("Scraping complete. Data saved in 'times_of_india_news.json'.")
+
+# Run the scraper
+scrape_times_of_india()
