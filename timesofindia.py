@@ -35,7 +35,7 @@ def scrape_times_of_india():
         if link and not link.startswith("http"):
             link = f"https://timesofindia.indiatimes.com{link}"
 
-        if title and link:  # Ensure both title and link exist
+        if title and link:  # both title and link exist
             news_data.append({
                 "title": title,
                 "link": link
